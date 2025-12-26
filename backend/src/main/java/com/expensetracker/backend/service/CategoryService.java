@@ -2,6 +2,10 @@ package com.expensetracker.backend.service;
 
 import com.expensetracker.backend.entity.Category;
 import com.expensetracker.backend.entity.User;
+import com.expensetracker.backend.exception.DuplicateResourceException;
+import com.expensetracker.backend.exception.InvalidOperationException;
+import com.expensetracker.backend.exception.ResourceNotFoundException;
+import com.expensetracker.backend.exception.UnauthorizedAccessException;
 import com.expensetracker.backend.repository.CategoryRepository;
 import com.expensetracker.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +24,7 @@ public class CategoryService {
     // Create default categories for a new user
     public void createDefaultCategories(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         
         String[] defaultCategoryNames = {
             "Food", "Travel", "Pets", "Apparel", "Transport", 
@@ -36,12 +40,12 @@ public class CategoryService {
     // Create custom category
     public Category createCustomCategory(String name, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         
         // Check if category with same name exists for this user
         Category existing = categoryRepository.findByNameAndUserId(name, userId);
         if (existing != null) {
-            throw new RuntimeException("Category already exists");
+            throw new DuplicateResourceException("Category", "name", name);
         }
         
         Category category = new Category(name, false, user);
@@ -66,16 +70,16 @@ public class CategoryService {
     // Delete a custom category
     public void deleteCategory(Long categoryId, Long userId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
         
         // Check if category belongs to user
         if (!category.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("Category", categoryId, userId);
         }
         
         // Don't allow deleting default categories
         if (category.getIsDefault()) {
-            throw new RuntimeException("Cannot delete default category");
+            throw new InvalidOperationException("Cannot delete default category");
         }
         
         categoryRepository.delete(category);

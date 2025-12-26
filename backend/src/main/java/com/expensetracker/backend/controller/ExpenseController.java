@@ -25,7 +25,7 @@ public class ExpenseController {
     // Add a new expense
     @PostMapping
     public ResponseEntity<?> addExpense(@RequestBody Map<String, Object> request) {
-        try {
+       
             Long userId = Long.valueOf(request.get("userId").toString());
             Long categoryId = Long.valueOf(request.get("categoryId").toString());
             BigDecimal amount = new BigDecimal(request.get("amount").toString());
@@ -40,9 +40,7 @@ public class ExpenseController {
             
             Expense expense = expenseService.addExpense(userId, categoryId, amount, expenseDate, note, emotion);
             return ResponseEntity.status(HttpStatus.CREATED).body(expense);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+       
     }
     
     // Get all expenses for a user
@@ -103,7 +101,7 @@ public class ExpenseController {
     public ResponseEntity<?> updateExpense(
             @PathVariable Long expenseId,
             @RequestBody Map<String, Object> request) {
-        try {
+       
             Long userId = Long.valueOf(request.get("userId").toString());
             
             BigDecimal amount = request.containsKey("amount") 
@@ -125,9 +123,7 @@ public class ExpenseController {
                 expenseId, userId, amount, categoryId, expenseDate, note, emotion
             );
             return ResponseEntity.ok(expense);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+       
     }
     
     // Delete an expense
@@ -135,12 +131,10 @@ public class ExpenseController {
     public ResponseEntity<?> deleteExpense(
             @PathVariable Long expenseId,
             @PathVariable Long userId) {
-        try {
+       
             expenseService.deleteExpense(expenseId, userId);
             return ResponseEntity.ok("Expense deleted");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        
     }
 }
 

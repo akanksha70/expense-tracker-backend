@@ -1,6 +1,8 @@
 package com.expensetracker.backend.service;
 
 import com.expensetracker.backend.entity.User;
+import com.expensetracker.backend.exception.DuplicateResourceException;
+import com.expensetracker.backend.exception.ResourceNotFoundException;
 import com.expensetracker.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,7 @@ public class UserService {
     public User registerUser(String email, String password) {
         // Check if email already exists
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("User", "email", email);
         }
         
         // Create new user
@@ -30,8 +32,9 @@ public class UserService {
     }
     
     // Find user by ID
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
     
     // Get all users (for testing only, remove in production)

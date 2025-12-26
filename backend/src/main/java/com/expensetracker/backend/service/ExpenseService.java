@@ -3,6 +3,8 @@ package com.expensetracker.backend.service;
 import com.expensetracker.backend.entity.Category;
 import com.expensetracker.backend.entity.Expense;
 import com.expensetracker.backend.entity.User;
+import com.expensetracker.backend.exception.ResourceNotFoundException;
+import com.expensetracker.backend.exception.UnauthorizedAccessException;
 import com.expensetracker.backend.repository.CategoryRepository;
 import com.expensetracker.backend.repository.ExpenseRepository;
 import com.expensetracker.backend.repository.UserRepository;
@@ -29,14 +31,14 @@ public class ExpenseService {
                              LocalDateTime expenseDate, String note, String emotion) {
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
         
         // Verify category belongs to user
         if (!category.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Category does not belong to user");
+            throw new UnauthorizedAccessException("User is not authorized to use this category");
         }
         
         Expense expense = new Expense(amount, category, user, expenseDate);
@@ -84,21 +86,21 @@ public class ExpenseService {
                                 String note, String emotion) {
         
         Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new RuntimeException("Expense not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Expense", "id", expenseId));
         
         // Verify expense belongs to user
         if (!expense.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("Expense", expenseId, userId);
         }
         
         if (amount != null) expense.setAmount(amount);
         
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
             
             if (!category.getUser().getId().equals(userId)) {
-                throw new RuntimeException("Category does not belong to user");
+                throw new UnauthorizedAccessException("User is not authorized to use this category");
             }
             expense.setCategory(category);
         }
@@ -113,11 +115,11 @@ public class ExpenseService {
     // Delete an expense
     public void deleteExpense(Long expenseId, Long userId) {
         Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new RuntimeException("Expense not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Expense", "id", expenseId));
         
         // Verify expense belongs to user
         if (!expense.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("Expense", expenseId, userId);
         }
         
         expenseRepository.delete(expense);

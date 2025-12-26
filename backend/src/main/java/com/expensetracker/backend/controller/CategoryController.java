@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -20,27 +21,20 @@ public class CategoryController {
     // Create default categories for a user
     @PostMapping("/default/{userId}")
     public ResponseEntity<?> createDefaultCategories(@PathVariable Long userId) {
-        try {
             categoryService.createDefaultCategories(userId);
             return ResponseEntity.status(HttpStatus.CREATED).body("Default categories created");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+       
     }
     
     // Create custom category
-    @PostMapping("/custom")
-    public ResponseEntity<?> createCustomCategory(@RequestBody Map<String, Object> request) {
-        try {
-            String name = (String) request.get("name");
-            Long userId = Long.valueOf(request.get("userId").toString());
-            
-            Category category = categoryService.createCustomCategory(name, userId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(category);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
+   @PostMapping("/custom")
+public ResponseEntity<?> createCustomCategory(@Valid @RequestBody Map<String, Object> request) {
+    String name = (String) request.get("name");
+    Long userId = Long.valueOf(request.get("userId").toString());
+    
+    Category category = categoryService.createCustomCategory(name, userId);
+    return ResponseEntity.status(HttpStatus.CREATED).body(category);
+}
     
     // Get all categories for a user
     @GetMapping("/user/{userId}")
@@ -66,11 +60,9 @@ public class CategoryController {
     // Delete a category
     @DeleteMapping("/{categoryId}/user/{userId}")
     public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId, @PathVariable Long userId) {
-        try {
+       
             categoryService.deleteCategory(categoryId, userId);
             return ResponseEntity.ok("Category deleted");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+       
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,13 +19,10 @@ public class UserController {
     
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        try {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
             User newUser = userService.registerUser(user.getEmail(), user.getPassword());
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        
     }
     
     // Get user by email
@@ -39,15 +37,11 @@ public class UserController {
     }
     
     // Get user by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.findById(id);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-    }
+   @GetMapping("/{id}")
+public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    User user = userService.findById(id);
+    return ResponseEntity.ok(user);
+}
     
     // Get all users (for testing only)
     @GetMapping
